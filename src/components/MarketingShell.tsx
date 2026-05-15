@@ -12,6 +12,7 @@ export const BRAND = {
   text: '#3E372A',
   muted: '#6E6346',
   faint: '#908569',
+  gold: '#9A7B4F',
   hairline: '#ECEAE3',
   hairlineStrong: '#D4D0C5',
   accent: '#C0673E',
