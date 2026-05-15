@@ -1,0 +1,19 @@
+{
+  "_comment": "Seed batch 1 — cornerstone international + EN-language sources. Source URLs point to canonical statute/treaty text (PDF), not landing pages. Used by `bun run ingest-cards -- --source-overrides=src/ingest/seed-batch-1.json --cards=...`.",
+
+  "un/ny-conv-1958": "https://uncitral.un.org/sites/default/files/media-documents/uncitral/en/new-york-convention-e.pdf",
+
+  "uncitral/model-law-2006": "https://uncitral.un.org/sites/default/files/media-documents/uncitral/en/19-09955_e_ebook.pdf",
+
+  "uncitral/arbitration-rules-2021": "https://uncitral.un.org/sites/default/files/media-documents/uncitral/en/21-07996_expedited-arbitration-e-ebook.pdf",
+
+  "us/fcpa-1977": "https://www.justice.gov/sites/default/files/criminal-fraud/legacy/2012/11/14/fcpa-english.pdf",
+
+  "uk/bribery-act-2010": "https://www.legislation.gov.uk/ukpga/2010/23/pdfs/ukpga_20100023_en.pdf",
+
+  "un/uncac-2003": "https://www.unodc.org/documents/treaties/UNCAC/Publications/Convention/08-50026_E.pdf",
+
+  "un/unclos-1982": "https://www.un.org/depts/los/convention_agreements/texts/unclos/unclos_e.pdf",
+
+  "oecd/anti-bribery-1997": "https://www.oecd.org/daf/anti-bribery/ConvCombatBribery_ENG.pdf"
+}
