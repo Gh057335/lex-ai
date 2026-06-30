@@ -7,10 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "verify-kb": "bun src/ingest/verify-kb.ts",
-    "verify-kb:dry": "bun src/ingest/verify-kb.ts --no-llm",
-    "consolidate-kb": "bun src/ingest/consolidate-kb.ts",
-    "ingest-cards": "bun src/ingest/ingest-cards.ts"
+    "verify-kb": "bun ingest/verify-kb.ts",
+    "verify-kb:dry": "bun ingest/verify-kb.ts --no-llm",
+    "consolidate-kb": "bun ingest/consolidate-kb.ts",
+    "ingest-cards": "bun ingest/ingest-cards.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.90.0",
