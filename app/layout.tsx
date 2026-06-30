@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Fraunces, Geist, Geist_Mono } from 'next/font/google';
+import { getSiteUrl } from '@/config/env';
 import './globals.css';
 
 const fraunces = Fraunces({
@@ -21,13 +22,8 @@ const geistMono = Geist_Mono({
   display: 'swap',
 });
 
-// VERCEL_URL is set automatically on every deployment; NEXT_PUBLIC_SITE_URL
-// should be set in the Vercel project settings for the production domain.
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
-  ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
-
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(getSiteUrl()),
   title: {
     default: 'Lexai — Legal AI for Emerging Markets',
     template: '%s | Lexai',

@@ -1,5 +1,21 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Demo mode (zero configuration)
+
+LEXAI runs end-to-end with **no environment variables**. When Supabase / Anthropic
+credentials are absent it transparently uses:
+
+- an **in-memory mock database** seeded with representative legal data
+  (jurisdictions, sources, corpus chunks, matters, contracts, regulatory events,
+  audit trail), and
+- a **deterministic mock AI provider** for the assistant, drafting, document
+  review and the regulatory digest.
+
+This makes it deployable to Vercel as a portfolio out of the box. The architecture
+is production-grade: both the data layer (`lib/supabase`) and the AI layer
+(`lib/ai`) are provider-abstracted, so adding credentials switches the **same code
+paths** to the live services with no other change. See [`env.example`](env.example).
+
 ## Documentazione e orientamento agenti AI
 - Documentazione architetturale: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - Regole e orientamento agenti: [docs/agents/AGENTS.md](docs/agents/AGENTS.md)

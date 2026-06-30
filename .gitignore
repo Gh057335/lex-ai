@@ -38,3 +38,5 @@ bun.lockb
 env.local
 
 pitch
+# TypeScript incremental build info
+*.tsbuildinfo
