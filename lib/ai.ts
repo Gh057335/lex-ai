@@ -1,8 +1,14 @@
-// Anthropic SDK wrapper. Centralises model choice, prompt caching, and the
-// formatting of retrieved legal chunks into the system prompt.
+// AI layer: Anthropic client, model registry, prompts, and all AI call
+// implementations. React components and Server Actions must NOT import the
+// Anthropic SDK directly — they talk to this module only.
 
 import Anthropic from '@anthropic-ai/sdk';
+import { getEnv } from '@/config/env';
 import type { RetrievedChunk } from '@/lib/search';
+
+// ---------------------------------------------------------------------------
+// Client factory
+// ---------------------------------------------------------------------------
 
 export const MODELS = {
   chat: 'claude-sonnet-4-6',
@@ -12,11 +18,29 @@ export const MODELS = {
 let _client: Anthropic | null = null;
 export function anthropic(): Anthropic {
   if (_client) return _client;
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) throw new Error('ANTHROPIC_API_KEY not set in .env.local');
-  _client = new Anthropic({ apiKey });
+  _client = new Anthropic({ apiKey: getEnv().ANTHROPIC_API_KEY });
   return _client;
 }
+
+// ---------------------------------------------------------------------------
+// Shared prompt utility
+// ---------------------------------------------------------------------------
+
+export function formatChunkForPrompt(tag: string, c: RetrievedChunk): string {
+  const head = [
+    `[${tag}]`,
+    c.sourceTitle,
+    c.locator ? `— ${c.locator}` : '',
+    c.effectiveFrom ? `(effective ${c.effectiveFrom})` : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+  return `${head}\n${c.body}`;
+}
+
+// ---------------------------------------------------------------------------
+// Legal assistant — Q&A
+// ---------------------------------------------------------------------------
 
 export interface CitationRef {
   chunkId: string;
@@ -48,9 +72,7 @@ Rules:
 
 export async function askAssistant(question: string, chunks: RetrievedChunk[]): Promise<AssistantAnswer> {
   const indexed = chunks.map((c, i) => ({ tag: `C${i + 1}`, chunk: c }));
-  const corpus = indexed
-    .map(({ tag, chunk }) => formatChunkForPrompt(tag, chunk))
-    .join('\n\n');
+  const corpus = indexed.map(({ tag, chunk }) => formatChunkForPrompt(tag, chunk)).join('\n\n');
 
   const resp = await anthropic().messages.create({
     model: MODELS.chat,
@@ -91,6 +113,24 @@ export async function askAssistant(question: string, chunks: RetrievedChunk[]): 
   return { answer, citations };
 }
 
+// ---------------------------------------------------------------------------
+// Document drafting
+// ---------------------------------------------------------------------------
+
+export interface DraftedDocument {
+  title: string;
+  bodyMd: string;
+  citations: CitationRef[];
+  modelId: string;
+}
+
+export interface DraftBrief {
+  documentType: string;
+  jurisdiction: string;
+  parties: string;
+  context?: string;
+}
+
 const DRAFT_SYSTEM = `You are LEXAI, drafting a binding legal document for emerging-markets corporate counsel.
 
 The retrieved corpus below is your ONLY source of black-letter law. Draft the document in clean markdown with numbered clauses. Every substantive clause that reflects a statutory rule must end with a citation like [C3]. If the corpus is silent on a point, use a reasonable commercial default and mark the clause "[drafting note: not derived from corpus]" so the reviewer can verify.
@@ -110,25 +150,9 @@ Output structure:
 
 Do NOT invent statutes, articles or case names not present in the corpus.`;
 
-export interface DraftedDocument {
-  title: string;
-  bodyMd: string;
-  citations: CitationRef[];
-  modelId: string;
-}
-
-export interface DraftBrief {
-  documentType: string;
-  jurisdiction: string;
-  parties: string;
-  context?: string;
-}
-
 export async function draftDocument(brief: DraftBrief, chunks: RetrievedChunk[]): Promise<DraftedDocument> {
   const indexed = chunks.map((c, i) => ({ tag: `C${i + 1}`, chunk: c }));
-  const corpus = indexed
-    .map(({ tag, chunk }) => formatChunkForPrompt(tag, chunk))
-    .join('\n\n');
+  const corpus = indexed.map(({ tag, chunk }) => formatChunkForPrompt(tag, chunk)).join('\n\n');
 
   const userMessage = [
     `Draft a ${brief.documentType} under ${brief.jurisdiction}.`,
@@ -180,14 +204,40 @@ export async function draftDocument(brief: DraftBrief, chunks: RetrievedChunk[])
   return { title, bodyMd, citations, modelId: MODELS.draft };
 }
 
-function formatChunkForPrompt(tag: string, c: RetrievedChunk): string {
-  const head = [
-    `[${tag}]`,
-    c.sourceTitle,
-    c.locator ? `— ${c.locator}` : '',
-    c.effectiveFrom ? `(effective ${c.effectiveFrom})` : '',
-  ]
-    .filter(Boolean)
-    .join(' ');
-  return `${head}\n${c.body}`;
+// ---------------------------------------------------------------------------
+// Regulatory digest
+// ---------------------------------------------------------------------------
+
+const DIGEST_SYSTEM = `You are LEXAI's regulatory monitor.
+
+Given a list of recent regulatory events affecting the user's workspace jurisdictions, write a tight executive briefing for a General Counsel. Output 4-7 sentences in markdown. Lead with the single most urgent item. Reference specific source titles and effective dates. End with a one-line "Action this week" if there is anything operational to do.
+
+Format:
+**What changed (last 60 days)**: <lead with most urgent — name source + effective date>. <2-4 sentences covering other material items, grouped by theme not by jurisdiction>.
+
+**Action this week**: <one concrete next step, or "Monitoring only — no immediate action" if nothing pressing>.
+
+Be specific. Avoid vague phrases like "various amendments". Cite source titles verbatim.`;
+
+export async function generateDigestSummary(
+  jurisdictions: string[],
+  eventBlock: string,
+): Promise<string> {
+  const resp = await anthropic().messages.create({
+    model: MODELS.chat,
+    max_tokens: 700,
+    system: [{ type: 'text', text: DIGEST_SYSTEM }],
+    messages: [
+      {
+        role: 'user',
+        content: `Workspace jurisdictions: ${jurisdictions.join(', ')}.\n\nRecent events (most recent first):\n\n${eventBlock}\n\nWrite the briefing now.`,
+      },
+    ],
+  });
+
+  return resp.content
+    .filter((b): b is Anthropic.TextBlock => b.type === 'text')
+    .map((b) => b.text)
+    .join('\n')
+    .trim();
 }

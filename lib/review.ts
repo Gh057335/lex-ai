@@ -5,11 +5,12 @@
 // Uses Anthropic tool_use to force a JSON output that matches our schema.
 
 import Anthropic from '@anthropic-ai/sdk';
-import { anthropic, MODELS } from '@/lib/ai';
+import { anthropic, MODELS, formatChunkForPrompt } from '@/lib/ai';
+import type { RiskLevel, Confidence } from '@/types/database';
 import type { RetrievedChunk } from '@/lib/search';
 
-export type RiskLevel = 'ok' | 'attention' | 'high' | 'blocking';
-export type Confidence = 'high' | 'medium' | 'low';
+// Re-export for consumers that import these types from this module.
+export type { RiskLevel, Confidence };
 
 export interface ReviewedClauseCitation {
   citationTag: string;        // "C3" — references the corpus tag passed in
@@ -103,15 +104,7 @@ export async function reviewDocument(
 ): Promise<ReviewResult> {
   const indexed = chunks.map((c, i) => ({ tag: `C${i + 1}`, chunk: c }));
   const corpus = indexed
-    .map(({ tag, chunk }) => {
-      const head = [
-        `[${tag}]`,
-        chunk.sourceTitle,
-        chunk.locator ? `— ${chunk.locator}` : '',
-        chunk.effectiveFrom ? `(effective ${chunk.effectiveFrom})` : '',
-      ].filter(Boolean).join(' ');
-      return `${head}\n${chunk.body}`;
-    })
+    .map(({ tag, chunk }) => formatChunkForPrompt(tag, chunk))
     .join('\n\n');
 
   const truncated = documentText.length > 60_000

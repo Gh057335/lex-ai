@@ -10,7 +10,7 @@ const fraunces = Fraunces({
 });
 
 const geistSans = Geist({
-  variable: '--font-geist',
+  variable: "--font-geist",
   subsets: ['latin'],
   display: 'swap',
 });
@@ -21,7 +21,13 @@ const geistMono = Geist_Mono({
   display: 'swap',
 });
 
+// VERCEL_URL is set automatically on every deployment; NEXT_PUBLIC_SITE_URL
+// should be set in the Vercel project settings for the production domain.
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
+  ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
     default: 'Lexai — Legal AI for Emerging Markets',
     template: '%s | Lexai',

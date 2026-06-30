@@ -7,6 +7,7 @@ import { createAdminClient } from '@/lib/supabase';
 import { askAssistant, draftDocument, type CitationRef } from '@/lib/ai';
 import { searchLaws, browseLaws, getWorkspaceJurisdictions } from '@/lib/search';
 import { recordAudit, hashContent } from '@/lib/audit';
+import { ensureAutoMatter } from '@/lib/db/matters';
 
 export interface AssistantResponse {
   answer: string;
@@ -61,8 +62,7 @@ export async function generateDocumentAction(formData: FormData): Promise<void> 
   }
 
   const drafted = await draftDocument({ documentType, jurisdiction, parties, context }, chunks);
-
-  const matterId = await ensureDraftingMatter(ctx.orgId);
+  const matterId = await ensureAutoMatter(ctx.orgId, 'AI-drafted documents');
 
   const { data: contract, error: contractErr } = await admin
     .from('contracts')
@@ -124,44 +124,11 @@ export async function generateDocumentAction(formData: FormData): Promise<void> 
   redirect(`/dashboard/contracts/${contract.id}`);
 }
 
-async function ensureDraftingMatter(orgId: string): Promise<string> {
-  const admin = createAdminClient();
-  const { data: ws } = await admin
-    .from('workspaces')
-    .select('id')
-    .eq('org_id', orgId)
-    .limit(1)
-    .maybeSingle();
-  if (!ws) throw new Error('no workspace available for org');
-
-  const { data: existing } = await admin
-    .from('matters')
-    .select('id')
-    .eq('workspace_id', ws.id)
-    .eq('name', 'AI-drafted documents')
-    .maybeSingle();
-  if (existing) return existing.id as string;
-
-  const { data: created, error } = await admin
-    .from('matters')
-    .insert({
-      workspace_id: ws.id,
-      name: 'AI-drafted documents',
-      status: 'active',
-    })
-    .select('id')
-    .single();
-  if (error || !created) throw error ?? new Error('matter insert failed');
-  return created.id as string;
-}
-
 async function persistCitations(
   admin: ReturnType<typeof createAdminClient>,
   versionId: string,
   drafted: { bodyMd: string; citations: CitationRef[] },
 ) {
-  // The drafted body uses [C1]..[CN] markers in document order. We persist one
-  // synthetic "clause" per cited chunk so the citation UI has a stable target.
   const rows = drafted.citations.map((c, i) => ({
     contract_version_id: versionId,
     ordinal: i,
@@ -179,19 +146,14 @@ async function persistCitations(
     .select('id, ordinal');
   if (error || !clauseRows) return;
 
-  const citationRows = drafted.citations.map((c, i) => {
-    const clause = clauseRows.find((r) => r.ordinal === i);
-    if (!clause) return null;
-    return {
-      clause_id: clause.id,
-      source_id: null,
-      chunk_id: c.chunkId,
-      locator: c.locator,
-      quote: c.snippet,
-    };
-  }).filter((r): r is NonNullable<typeof r> => r !== null);
+  const citationRows = drafted.citations
+    .map((c, i) => {
+      const clause = clauseRows.find((r) => r.ordinal === i);
+      if (!clause) return null;
+      return { clause_id: clause.id, source_id: null, chunk_id: c.chunkId, locator: c.locator, quote: c.snippet };
+    })
+    .filter((r): r is NonNullable<typeof r> => r !== null);
 
-  // We need source_id, look it up via chunks.
   if (citationRows.length > 0) {
     const chunkIds = citationRows.map((r) => r.chunk_id).filter((id): id is string => !!id);
     const { data: chunks } = await admin

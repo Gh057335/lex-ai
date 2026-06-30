@@ -1,9 +1,10 @@
 // Regulatory events: surface what changed in the workspace's watched jurisdictions.
 
 import { createAdminClient } from '@/lib/supabase';
+import type { ChangeType, Severity } from '@/types/database';
 
-export type ChangeType = 'new' | 'amended' | 'superseded' | 'withdrawn';
-export type Severity = 'info' | 'attention' | 'high' | 'blocking';
+// Re-export for consumers that import these types from this module.
+export type { ChangeType, Severity };
 
 export interface RegulatoryEventRow {
   id: string;
@@ -32,6 +33,24 @@ interface ListOptions {
   limit?: number;
 }
 
+// Supabase join shape returned by the regulatory_events query.
+interface RegulatoryEventJoin {
+  id: string;
+  change_type: string;
+  summary: string;
+  diff: { severity?: Severity; action?: string; areas?: string[] } | null;
+  detected_at: string;
+  effective_at: string | null;
+  legal_sources: {
+    id: string;
+    key: string;
+    title: string;
+    jurisdiction: string;
+    publisher: string | null;
+    official_url: string | null;
+  };
+}
+
 export async function listEvents(opts: ListOptions = {}): Promise<RegulatoryEventRow[]> {
   const admin = createAdminClient();
   const sinceDays = opts.sinceDays ?? 60;
@@ -56,31 +75,28 @@ export async function listEvents(opts: ListOptions = {}): Promise<RegulatoryEven
 
   const now = Date.now();
   return (data ?? []).map((row): RegulatoryEventRow => {
-    const src = (row as unknown as { legal_sources: {
-      id: string; key: string; title: string; jurisdiction: string;
-      publisher: string | null; official_url: string | null;
-    } }).legal_sources;
-    const diff = (row.diff as { severity?: Severity; action?: string; areas?: string[] } | null) ?? {};
-    const detectedMs = new Date(row.detected_at as string).getTime();
-    const effectiveMs = row.effective_at ? new Date(row.effective_at as string).getTime() : null;
+    const r = row as unknown as RegulatoryEventJoin;
+    const diff = r.diff ?? {};
+    const detectedMs = new Date(r.detected_at).getTime();
+    const effectiveMs = r.effective_at ? new Date(r.effective_at).getTime() : null;
     return {
-      id: row.id as string,
-      changeType: row.change_type as ChangeType,
-      summary: row.summary as string,
-      detectedAt: row.detected_at as string,
-      effectiveAt: (row.effective_at as string | null) ?? null,
+      id: r.id,
+      changeType: r.change_type as ChangeType,
+      summary: r.summary,
+      detectedAt: r.detected_at,
+      effectiveAt: r.effective_at,
       daysSinceDetected: Math.floor((now - detectedMs) / (1000 * 60 * 60 * 24)),
       daysToEffective: effectiveMs !== null ? Math.floor((effectiveMs - now) / (1000 * 60 * 60 * 24)) : null,
       severity: diff.severity ?? 'info',
       action: diff.action ?? null,
       areas: diff.areas ?? [],
       source: {
-        id: src.id,
-        key: src.key,
-        title: src.title,
-        jurisdiction: src.jurisdiction,
-        publisher: src.publisher,
-        officialUrl: src.official_url,
+        id: r.legal_sources.id,
+        key: r.legal_sources.key,
+        title: r.legal_sources.title,
+        jurisdiction: r.legal_sources.jurisdiction,
+        publisher: r.legal_sources.publisher,
+        officialUrl: r.legal_sources.official_url,
       },
     };
   });

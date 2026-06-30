@@ -8,6 +8,7 @@ import { extractPdfText } from '@/lib/pdf';
 import { reviewDocument } from '@/lib/review';
 import { searchLaws, browseLaws, getWorkspaceJurisdictions } from '@/lib/search';
 import { recordAudit, hashContent } from '@/lib/audit';
+import { ensureAutoMatter } from '@/lib/db/matters';
 
 export async function reviewUploadedDocumentAction(formData: FormData): Promise<void> {
   const ctx = await requireMembership();
@@ -37,7 +38,7 @@ export async function reviewUploadedDocumentAction(formData: FormData): Promise<
   const review = await reviewDocument(text, chunks);
 
   const admin = createAdminClient();
-  const matterId = await ensureReviewMatter(ctx.orgId);
+  const matterId = await ensureAutoMatter(ctx.orgId, 'AI-reviewed documents');
 
   const { data: contract, error: contractErr } = await admin
     .from('contracts')
@@ -166,31 +167,4 @@ function formatRationale(issue: string | null, redline: string | null): string |
   if (issue) parts.push(`**Issue.** ${issue}`);
   if (redline) parts.push(`**Suggested redline.**\n${redline}`);
   return parts.join('\n\n');
-}
-
-async function ensureReviewMatter(orgId: string): Promise<string> {
-  const admin = createAdminClient();
-  const { data: ws } = await admin
-    .from('workspaces')
-    .select('id')
-    .eq('org_id', orgId)
-    .limit(1)
-    .maybeSingle();
-  if (!ws) throw new Error('no workspace');
-
-  const { data: existing } = await admin
-    .from('matters')
-    .select('id')
-    .eq('workspace_id', ws.id)
-    .eq('name', 'AI-reviewed documents')
-    .maybeSingle();
-  if (existing) return existing.id as string;
-
-  const { data: created, error } = await admin
-    .from('matters')
-    .insert({ workspace_id: ws.id, name: 'AI-reviewed documents', status: 'active' })
-    .select('id')
-    .single();
-  if (error || !created) throw error ?? new Error('matter insert failed');
-  return created.id as string;
 }
