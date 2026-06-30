@@ -1,113 +1,60 @@
-# LEXAI — Handoff per il CTO
+# HANDOFF.md — Current state snapshot
 
-Pacchetto al 12 maggio 2026. MVP funzionante in modalità demo, da prendere come
-prototipo per validare il positioning con 2–3 General Counsel, **non** come
-codice pronto per produzione.
+> Living snapshot of the repo, **not** a changelog (history lives in [SESSION.md](SESSION.md)). Rewrite the affected sections after every patch so a fresh agent can resume cold.
 
-## Cosa fa in 30 secondi
+_Last updated: 2026-07-01 (Patch #007)._
 
-Tre flussi end-to-end su un corpus legale GCC (6 giurisdizioni, 17 fonti):
+## Where things stand
 
-1. **AI Assistant** (`/dashboard/assistant`) — chat su corpus, risposte con citazioni articolo-per-articolo.
-2. **Document review** (`/dashboard/review`) — upload PDF, segmentazione clausole, risk-flagging con redline e citazioni.
-3. **Document generation** (modal dentro AI Assistant) — drafting di NDA / DPA / SHA / Arbitration clause ancorato al corpus.
+Lexai is a working **portfolio MVP** of an AI legal assistant for GCC/emerging-markets corporate counsel. It runs **fully standalone with zero environment variables** and deploys to Vercel as-is. Three product flows work end-to-end: AI Assistant (cited Q&A), Document Review (PDF → clause risk + redlines), and Document Drafting (corpus-grounded NDA/DPA/SHA/arbitration). Regulatory alerts + AI digest are also wired.
 
-## Stack
+The codebase was recently (2026-07-01) migrated from `src/` to a root-level App Router layout, refactored to a production-grade architecture, and then made zero-config via a **dual provider abstraction**: both the data layer (`lib/supabase`) and the AI layer (`lib/ai`) auto-select a real implementation when credentials are present and a deterministic mock otherwise — over identical code paths.
 
-| Layer | Scelta |
-|---|---|
-| Runtime | Bun |
-| Framework | Next.js 16.2 (App Router, Server Components, Turbopack) |
-| UI | React 19.2, Tailwind v4, Lucide, Playfair + Inter |
-| Database | Supabase Postgres (RLS attiva, pgvector + tsvector pronti) |
-| AI | `@anthropic-ai/sdk` 0.90 — Claude Sonnet 4.6 chat + Opus 4.7 drafting, prompt caching |
-| PDF | `unpdf` (text-only, no OCR) |
+## Completed
 
-## Setup (5 min)
+- Root-level App Router structure (`app/`, `lib/`, `components/`, `config/`, `types/`, `ingest/`).
+- Centralised, Zod-validated env (`config/env.ts`) with all credentials optional.
+- AI layer fully abstracted behind `AIProvider`; Anthropic SDK isolated to one module; deterministic corpus-grounded mock provider.
+- Mock Supabase client (in-memory PostgREST-compatible builder) with seeded fixed-id dataset; demo auth via `lib/demo.ts` + `lib/auth.ts`.
+- Hash-chain audit logging on AI mutations.
+- Verified: zero-env `next build` = 0 errors/0 warnings, all routes 200, full lifecycle headless.
+- AI-first agent docs: `CLAUDE.md`, `AGENTS.md`, `SESSION.md`, `HANDOFF.md`, plus stable references `ARCHITECTURE.md`, `DECISIONS.md`, `ROADMAP.md`, and `docs/`.
 
-```sh
-git clone <repo> lexai-us && cd lexai-us
-bun install
-cp .env.local.example .env.local
-# riempi .env.local con Supabase + Anthropic keys
-psql "$DATABASE_URL" -f supabase/migrations/001_lexai_schema.sql   # se nuova DB
-bun src/ingest/seed-demo-corpus.ts                                # carica le 17 fonti demo
-bun run dev
-```
+## Key architectural decisions
 
-Poi http://localhost:3000/dashboard.
+- **Optional-everything / dual provider abstraction** — credentials select live vs. mock; feature code never branches on mode.
+- **Single AI façade** (`lib/ai/index.ts`) — no SDK imports leak into features.
+- **Auth removed for demo** — single seeded org, service-role client only (RLS bypassed by design, server-only).
+- **Lexical retrieval** (tsvector) chosen over embeddings for current corpus size.
+- **Types mirror SQL** in `types/database.ts`; centralised enums to kill duplication.
 
-## Debito tecnico noto (per priorità)
+## Problems solved
 
-### Bloccanti per la produzione
+- Broken Supabase magic-link auth that blocked iteration → replaced with auto-seeded demo context.
+- Duplicate type definitions across `review.ts`/`events.ts` → centralised in `types/database.ts`.
+- Hard dependency on credentials → made every external service optional with mocks.
 
-1. **Auth rimossa.** `src/lib/auth.ts` ritorna sempre un context demo, `src/lib/supabase.ts` usa solo service-role (bypassa RLS). Per ripristinare:
-   - Rimettere `createServerClient` (cookies) in `supabase.ts` con anon key.
-   - Reintrodurre `src/lib/supabase-browser.ts` (Client Components).
-   - Rifare `src/app/(auth)/login/page.tsx`, `register/page.tsx`, `auth/callback/route.ts` (versioni precedenti recuperabili dalla cronologia).
-   - Riscrivere il body di `requireMembership`/`currentMembership` con la logica reale su `auth.getUser()` + memberships.
-   - Le firme degli helper non cambiano → nessun call site da toccare.
+## Open problems / technical debt (priority order)
 
-2. **Corpus = parafrasi.** I 58 chunk in `src/ingest/seed-demo-corpus.ts` sono accurati ma non testo verbatim. Sostituire via la pipeline esistente `bun run ingest-cards` puntando ai PDF ufficiali (URL già nei record). Verifica con `bun run verify-kb`.
+1. **Untyped mock client** → `as unknown as SupabaseClient` casts in `search.ts`/`events.ts`/pages. Generate typed Supabase client to remove them.
+2. **No real auth / single-tenant** — schema supports multi-tenancy + RLS; re-enable Supabase sessions to restore it (helper signatures unchanged, so no call sites move).
+3. **No Zod on FormData inputs** of `generateDocumentAction` / review action (still manual string guards).
+4. **No centralised error shape** for Server Actions (raw `throw new Error`).
+5. **Corpus is paraphrase, not verbatim** — re-ingest official PDFs via `bun run ingest-cards`, verify with `bun run verify-kb`.
+6. **Lexical retrieval only** — add pgvector embeddings + hybrid search beyond ~100 norms.
+7. **No OCR** (`unpdf` text-only) — scanned PDFs need a vision/Textract fallback.
+8. **No export** (DOCX/PDF) of drafts/reviews.
+9. **Non-atomic multi-step writes** in actions — no transactions/idempotency; audit log is the only safety net.
 
-3. **Single tenant.** Demo mode crea una sola org. Multi-tenancy logica è già nello schema (organizations, memberships, RLS policies), basta riattivare auth.
+## Missing tests / risks
 
-### Alti
+- **Zero automated tests.** Minimum next step: `bun test` covering `askLegalAssistantAction` and the review action. Until then, the **zero-env `bun run build` + route smoke check is the regression gate**.
+- Risk: mock client drifting from real Supabase query surface — any unsupported operator silently breaks demo mode.
+- Risk: renaming fixed seed ids in `seed.ts` breaks pages that reference them.
 
-4. **Retrieval lessicale.** `src/lib/search.ts` usa PostgreSQL tsvector. Funziona fino a ~100 norme. Sopra: popolare `legal_chunks.embedding vector(1024)` (HNSW index già creato in migration 001) con Voyage `voyage-law-2` o OpenAI `text-embedding-3-large`. Hybrid BM25 + cosine, eventualmente con cross-encoder per re-ranking.
+## Next priorities
 
-5. **No OCR.** `unpdf` legge solo PDF testuali. Per PDF scansionati: Anthropic vision o AWS Textract come fallback.
-
-6. **No export.** Solo markdown nel DB. Aggiungere export DOCX (`docx` npm) + PDF.
-
-7. **Server Action size limit.** `next.config.ts` ha `bodySizeLimit: '10mb'`. Per file > 10MB serve resumable upload a Supabase Storage poi processing async via job queue.
-
-### Medi
-
-8. **Audit log immutabilità.** `src/lib/audit.ts` fa hash-chain SHA-256 ma non c'è un job di verifica del chain. Aggiungere `verify-audit-chain.ts` da girare in cron.
-
-9. **No retries / no idempotency keys.** Le server actions fanno multi-step DB writes senza transaction né compensazione. Per produzione: avvolgere in RPC Postgres o accettare la non-atomicità con audit log come safety net.
-
-10. **No test.** Zero unit / integration. Almeno: 1 test sul flow `askLegalAssistantAction` e 1 sul `reviewUploadedDocumentAction`.
-
-### Bassi
-
-11. **Sidebar contiene voci non-implementate**: Workspaces, Matters, Reg. alerts, Audit log, Settings — pagine esistono ma sono CRUD vuote o placeholder.
-
-12. **Topbar "Demo mode" badge** — togliere quando auth tornerà.
-
-## Cosa è stato fatto in questa sessione
-
-Riferimento: `~/Desktop/LEXAI-Documentazione-Tecnica.pdf` per il dettaglio completo.
-
-In sintesi:
-- Rimossa auth (Supabase magic link era rotta, bloccava ogni iterazione).
-- Sostituita con Demo mode auto-seeded (`src/lib/demo.ts`).
-- Costruito da zero il motore AI (chat + review + generation): `src/lib/{search,ai,review,pdf}.ts`, `src/lib/actions/{assistant,review}.ts`, pagine in `src/app/dashboard/{assistant,review}`.
-- Esteso il corpus a 6 giurisdizioni (DIFC, ADGM, Qatar, QFC, KSA, Bahrain), 17 fonti, 58 chunk.
-
-## Roadmap di prodotto (mia opinione)
-
-Prima di scrivere altro codice: **3 conversazioni con GC reali** (uno DIFC, uno saudita, uno qatariota). Cosa testare:
-- "AI Legal OS per emerging markets" risuona o suona generico?
-- *Generation* o *review* è il primo bisogno?
-- Quali giurisdizioni mancano nel corpus per non perdere credibilità?
-- I 4 verticali (oil&gas, renewables, mining, fintech) sono il taglio giusto, o conviene partire da un settore solo?
-
-Da lì:
-1. **Sostituire corpus** con PDF verbatim per le 6 giurisdizioni attuali.
-2. **Regulatory monitoring** — la tabella `regulatory_events` esiste, manca la pipeline: scraper su gazzette ufficiali → diff → event_impacts per workspace.
-3. **Export DOCX/PDF nativo** del review e del draft.
-4. **Re-auth** + multi-tenant prima del primo design partner.
-5. **Embeddings** quando il corpus supera 100 norme.
-
-## Sicurezza
-
-- `.env.local` è in `.gitignore`. Non committarla.
-- La service-role key di Supabase è enterprise-level access — restringere all'IP del server o ruotarla regolarmente in produzione.
-- Quando l'auth tornerà: forzare SSO (SAML/OIDC) prima di accettare il primo cliente enterprise GCC.
-
-## Contatti
-
-Documentazione tecnica completa: `~/Desktop/LEXAI-Documentazione-Tecnica.pdf`
-Repo locale: `~/Desktop/lexai-us/`
+1. Add the first two integration tests (assistant + review).
+2. Zod-validate the remaining FormData Server Actions.
+3. Generate a typed Supabase client and remove `as unknown as` casts.
+4. (Product) Re-enable auth + multi-tenancy before any real design partner; replace paraphrased corpus with verbatim sources.
