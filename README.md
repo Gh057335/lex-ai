@@ -17,10 +17,13 @@ is production-grade: both the data layer (`lib/supabase`) and the AI layer
 paths** to the live services with no other change. See [`env.example`](env.example).
 
 ## Documentazione e orientamento agenti AI
-- Documentazione architetturale: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-- Regole e orientamento agenti: [docs/agents/AGENTS.md](docs/agents/AGENTS.md)
-- Gestione sessioni: [docs/agents/session.md](docs/agents/session.md)
-- Knowledge base: [docs/knowledge-base/](docs/knowledge-base/)
+- Entry point per agenti AI: [AGENTS.md](AGENTS.md) (Claude Code: [CLAUDE.md](CLAUDE.md))
+- Log cronologico delle patch: [docs/SESSION.md](docs/SESSION.md)
+- Stato corrente del progetto: [docs/HANDOFF.md](docs/HANDOFF.md)
+- Architettura e ADR-lite: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- Decisioni permanenti: [docs/DECISIONS.md](docs/DECISIONS.md)
+- Lavoro pianificato: [docs/ROADMAP.md](docs/ROADMAP.md)
+- Indice documentazione: [docs/README.md](docs/README.md)
 ## Getting Started
 
 First, run the development server:

@@ -2,7 +2,7 @@
 
 > Living snapshot of the repo, **not** a changelog (history lives in [SESSION.md](SESSION.md)). Rewrite the affected sections after every patch so a fresh agent can resume cold.
 
-_Last updated: 2026-07-01 (Patch #007)._
+_Last updated: 2026-07-01 (Patch #008)._
 
 ## Where things stand
 
@@ -18,7 +18,7 @@ The codebase was recently (2026-07-01) migrated from `src/` to a root-level App 
 - Mock Supabase client (in-memory PostgREST-compatible builder) with seeded fixed-id dataset; demo auth via `lib/demo.ts` + `lib/auth.ts`.
 - Hash-chain audit logging on AI mutations.
 - Verified: zero-env `next build` = 0 errors/0 warnings, all routes 200, full lifecycle headless.
-- AI-first agent docs: `CLAUDE.md`, `AGENTS.md`, `SESSION.md`, `HANDOFF.md`, plus stable references `ARCHITECTURE.md`, `DECISIONS.md`, `ROADMAP.md`, and `docs/`.
+- AI-first agent docs in enterprise layout: root `AGENTS.md` (universal router) + `CLAUDE.md` (shim); `docs/SESSION.md`, `docs/HANDOFF.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`, `docs/ROADMAP.md`.
 
 ## Key architectural decisions
 

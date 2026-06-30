@@ -1,6 +1,6 @@
 # ARCHITECTURE.md
 
-Stable architectural reference for **Lexai**. Consulted on demand — not every session. For conventions/workflow see [AGENTS.md](AGENTS.md); for the *why* behind choices see [DECISIONS.md](DECISIONS.md).
+Stable architectural reference for **Lexai**. Consulted on demand — not every session. For conventions/workflow see [AGENTS.md](../AGENTS.md); for the *why* behind choices see [DECISIONS.md](DECISIONS.md).
 
 ---
 

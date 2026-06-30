@@ -1,10 +1,12 @@
 # AGENTS.md
 
-Primary reference for AI coding agents working on **Lexai**. Read fully before editing. Optimized for fast scan + low token cost.
+Universal entry point for AI coding agents working on **Lexai** (Claude Code, Codex CLI, Gemini CLI, Cursor, Windsurf, Cline, and future agents). Read fully before editing. Optimized for fast scan + low token cost.
 
-> Flow: [CLAUDE.md](CLAUDE.md) → **AGENTS.md** → [SESSION.md](SESSION.md) → [HANDOFF.md](HANDOFF.md)
+> Flow: **AGENTS.md** (you are here) → [docs/SESSION.md](docs/SESSION.md) → [docs/HANDOFF.md](docs/HANDOFF.md)
 >
-> Stable references (on demand): [ARCHITECTURE.md](ARCHITECTURE.md) · [DECISIONS.md](DECISIONS.md) · [ROADMAP.md](ROADMAP.md) · [docs/](docs/)
+> Stable references (on demand): [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · [docs/DECISIONS.md](docs/DECISIONS.md) · [docs/ROADMAP.md](docs/ROADMAP.md) · [docs/](docs/)
+>
+> Human-facing docs: [README.md](README.md). Claude Code shim: [CLAUDE.md](CLAUDE.md).
 
 ---
 
@@ -40,7 +42,7 @@ Every external dependency is **optional and provider-abstracted**. Presence of c
 - **Auth removed** (demo): `lib/auth.ts` returns fixed context, `lib/demo.ts` lazily seeds; service-role only.
 - **Retrieval**: `lib/search.ts` lexical tsvector over `legal_chunks` with `browseLaws` fallback.
 
-> Full diagrams, request lifecycle, layer table, ADR-lite, and delicate points → **[ARCHITECTURE.md](ARCHITECTURE.md)**. The *why* behind these → **[DECISIONS.md](DECISIONS.md)**.
+> Full diagrams, request lifecycle, layer table, ADR-lite, and delicate points → **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**. The *why* behind these → **[docs/DECISIONS.md](docs/DECISIONS.md)**.
 
 ## 4. Folder structure
 
@@ -114,15 +116,15 @@ pitch/               Business/pitch docs (non-code)
 
 ## 7. Development workflow
 
-1. Read SESSION.md (history) + HANDOFF.md (current state).
+1. Read [docs/SESSION.md](docs/SESSION.md) (history) + [docs/HANDOFF.md](docs/HANDOFF.md) (current state).
 2. Consult `node_modules/next/dist/docs/` for any Next.js 16 API.
 3. Implement against the provider interfaces; keep demo mode working.
 4. `bunx tsc --noEmit` (0 errors) and `bun run lint`.
 5. Verify zero-env demo path still builds: `bun run build` with no env vars.
-6. Update SESSION.md (append entry) + HANDOFF.md (rewrite affected sections only).
+6. Update docs/SESSION.md (append entry) + docs/HANDOFF.md (rewrite affected sections only).
 
 ### Pre-implementation checklist
-- [ ] Read SESSION.md + HANDOFF.md.
+- [ ] Read docs/SESSION.md + docs/HANDOFF.md.
 - [ ] Identified the right layer (ai / supabase / actions / page).
 - [ ] Confirmed no new mandatory credential is introduced.
 - [ ] Checked Next.js 16 docs for any framework API used.
@@ -133,11 +135,11 @@ pitch/               Business/pitch docs (non-code)
 - [ ] Demo mode (zero env) still builds & runs; new AI ops have a mock impl.
 - [ ] New FK joins added to `REGISTRY` in `mock.ts` if applicable.
 - [ ] Audit recorded for new AI mutations.
-- [ ] SESSION.md appended; HANDOFF.md updated.
+- [ ] docs/SESSION.md appended; docs/HANDOFF.md updated.
 
 ### Regression strategy
 - Treat the **zero-env demo build** as the canonical smoke test — it exercises both mock layers end-to-end. If it builds clean and all routes 200, behavior is preserved.
-- Never delete history in SESSION.md; mark each patch `Regression: YES/NO` with reason.
+- Never delete history in docs/SESSION.md; mark each patch `Regression: YES/NO` with reason.
 
 ## 8. Important files
 
@@ -158,18 +160,18 @@ pitch/               Business/pitch docs (non-code)
 
 ## 10. Delicate architecture points
 
-Summary (full detail in [ARCHITECTURE.md](ARCHITECTURE.md#delicate-points-handle-with-care)):
+Summary (full detail in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#delicate-points-handle-with-care)):
 
 - **Mock fidelity** — `lib/supabase/mock.ts` must match the real Supabase query surface; unsupported operators silently break demo. New FK joins → `REGISTRY`.
 - **Fixed seed ids** in `seed.ts` — referenced across pages; don't rename.
 - **No per-user tenancy** — demo org via service-role only.
 - **Non-atomic multi-step writes** — audit log is the only safety net.
-- **Lexical retrieval** scales to ~100 norms; embeddings deferred (see [ROADMAP.md](ROADMAP.md)).
+- **Lexical retrieval** scales to ~100 norms; embeddings deferred (see [docs/ROADMAP.md](docs/ROADMAP.md)).
 
 ## 11. Git / commit / patch conventions
 
 - Branch off `main`; don't commit/push unless asked. Never commit `.env*`.
 - Commit messages: Conventional Commits — `feat:`, `refactor:`, `fix:`, `chore:` + concise scope (match existing history).
-- One logical change per patch ("patch" = one completed unit of work tracked in SESSION.md).
-- After every patch: append to [SESSION.md](SESSION.md), update [HANDOFF.md](HANDOFF.md). Never rewrite history.
-- End commit messages with: `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>`.
+- One logical change per patch ("patch" = one completed unit of work tracked in docs/SESSION.md).
+- After every patch: append to [docs/SESSION.md](docs/SESSION.md), update [docs/HANDOFF.md](docs/HANDOFF.md). Never rewrite history.
+- End commit messages with: `Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>`.

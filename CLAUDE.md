@@ -1,18 +1,13 @@
-# CLAUDE.md
+# Claude Code
 
-Entry point for AI coding agents. **Do not duplicate docs here.**
+Questo repository utilizza una documentazione AI centralizzata.
 
-Read in order before doing anything:
+Leggere nell'ordine:
 
-1. [AGENTS.md](AGENTS.md) — repo manual: stack, conventions, patterns, workflow, checklists. **Start here.**
-2. [SESSION.md](SESSION.md) — append-only changelog. Read before starting; append after every patch.
-3. [HANDOFF.md](HANDOFF.md) — current-state snapshot. Read to resume; update after every patch.
+1. [AGENTS.md](AGENTS.md)
+2. [docs/SESSION.md](docs/SESSION.md)
+3. [docs/HANDOFF.md](docs/HANDOFF.md)
 
-Stable references — consult on demand, not every session:
+Non duplicare informazioni presenti in AGENTS.md.
 
-- [ARCHITECTURE.md](ARCHITECTURE.md) — diagrams + ADR-lite (the dual provider abstraction).
-- [DECISIONS.md](DECISIONS.md) — permanent decisions + rationale (append-only).
-- [ROADMAP.md](ROADMAP.md) — planned work / priorities.
-- [docs/](docs/) — long-form supporting material.
-
-> Runtime is **Bun**. Next.js 16 here has breaking changes vs. training data — consult `node_modules/next/dist/docs/` before writing Next-specific code.
+> Runtime: **Bun**. Next.js 16 ha breaking changes vs. training data — consultare `node_modules/next/dist/docs/` prima di usare API specifiche.

@@ -32,4 +32,4 @@ Priority: **P0** blocker · **P1** high · **P2** medium · **P3** low.
 
 | P | Item | Notes |
 |---|---|---|
-| P2 | Fix `README.md` doc links | Repoint stale `docs/...` links to root-level `AGENTS.md`/`SESSION.md`/`HANDOFF.md` |
+| P3 | Author `DEPLOYMENT.md` / `SECURITY.md` / `API.md` / `CONTRIBUTING.md` | Listed in the target `docs/` structure; need real content from build/deploy/API/contributing flow before writing |
