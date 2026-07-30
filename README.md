@@ -1,4 +1,11 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Lexai — AI-native legal research platform
+
+[![CI](https://github.com/Gh057335/lex-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/Gh057335/lex-ai/actions/workflows/ci.yml)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+Arabic-first legal operations platform for reviewing commercial contracts — dual-provider abstraction, runs fully in **demo mode with zero config**.
 
 ## Demo mode (zero configuration)
 
