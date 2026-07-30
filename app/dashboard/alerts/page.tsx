@@ -17,7 +17,7 @@ export default async function AlertsPage() {
         </h1>
         <p className="text-sm mt-1" style={{ color: '#6b7280' }}>
           Watched: {jurisdictions.join(' · ') || '—'}. Surfaces statute and regulator activity
-          in the workspace's jurisdictions over the last 90 days.
+          in the workspace&apos;s jurisdictions over the last 90 days.
         </p>
       </header>
       <AlertsClient events={events} stats={stats} jurisdictions={jurisdictions} />

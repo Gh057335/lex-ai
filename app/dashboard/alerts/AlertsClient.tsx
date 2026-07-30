@@ -147,7 +147,7 @@ function DigestPanel({
         </div>
       ) : (
         <div className="text-xs mt-2" style={{ color: '#9ca3af' }}>
-          Click "Generate briefing" to summarise the last 60 days for {eventCount > 0 ? `${eventCount} events` : 'this workspace'}.
+          Click &ldquo;Generate briefing&rdquo; to summarise the last 60 days for {eventCount > 0 ? `${eventCount} events` : 'this workspace'}.
         </div>
       )}
     </div>

@@ -1,11 +1,15 @@
-# Lexai — AI-native legal research platform
+# Lexai — Arabic-first legal operations platform
 
-[![CI](https://github.com/Gh057335/lex-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/Gh057335/lex-ai/actions/workflows/ci.yml)
+[![CI](https://github.com/lele-ceo/lex-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/lele-ceo/lex-ai/actions/workflows/ci.yml)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-Arabic-first legal operations platform for reviewing commercial contracts — dual-provider abstraction, runs fully in **demo mode with zero config**.
+Legal-operations platform for corporate teams reviewing bilingual (Arabic–English) B2B
+commercial contracts. The workflow is **Client → Case → Document → AI-assisted review →
+human approval → controlled export** — it is not a general legal chatbot.
+
+Runs end-to-end **with zero environment variables**.
 
 ## Demo mode (zero configuration)
 

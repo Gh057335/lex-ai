@@ -12,7 +12,7 @@ export default function DPAPage() {
           The Customer is the <strong>Controller</strong>. LEXAI is the <strong>Processor</strong>.
           The processing covered by this DPA is limited to: (i) the documents and uploads the
           Customer submits to the Services; (ii) usage metadata reasonably necessary to operate
-          the Services; (iii) personal data of the Customer's authorised users (names, emails,
+          the Services; (iii) personal data of the Customer&apos;s authorised users (names, emails,
           authentication metadata). No processing of special categories of personal data is
           authorised unless agreed in a signed schedule.
         </p>
@@ -31,7 +31,7 @@ export default function DPAPage() {
         <p>The current list of sub-processors as of the date of this DPA:</p>
         <SubprocessorTable />
         <p className="mt-4">
-          LEXAI will give the Customer at least <strong>30 days' notice</strong> of any new
+          LEXAI will give the Customer at least <strong>30 days&apos; notice</strong> of any new
           sub-processor and allow the Customer to object on documented, reasonable grounds. If
           the parties cannot agree within 30 days, the Customer may terminate the affected
           portion of the Services for cause.
@@ -40,7 +40,7 @@ export default function DPAPage() {
 
       <Article id="4" title="Cross-border transfers">
         <p>
-          Where Customer Personal Data is exported outside the Customer's jurisdiction, LEXAI
+          Where Customer Personal Data is exported outside the Customer&apos;s jurisdiction, LEXAI
           will rely on (a) an adequacy determination by the competent regulator, where one
           exists; (b) the DIFC Standard Contractual Clauses, the ADGM Standard Data Export
           Clauses, or the SDAIA-approved transfer mechanism, as applicable; or (c) explicit
@@ -64,7 +64,7 @@ export default function DPAPage() {
       <Article id="6" title="Breach notification">
         <p>
           LEXAI will notify the Customer of any confirmed Personal Data Breach affecting the
-          Customer's data <strong>without undue delay</strong> and in any event no later than
+          Customer&apos;s data <strong>without undue delay</strong> and in any event no later than
           <strong>48 hours</strong> after becoming aware. The notification will describe the
           nature of the breach, categories and approximate number of data subjects, likely
           consequences, and mitigation measures taken. This obligation is more protective than
@@ -79,7 +79,7 @@ export default function DPAPage() {
           fulfilling its obligation to respond to requests from data subjects exercising their
           rights of access, rectification, erasure, restriction, portability, and objection.
           LEXAI provides programmatic export APIs and a self-service erasure interface in the
-          Customer's workspace.
+          Customer&apos;s workspace.
         </p>
       </Article>
 
@@ -95,7 +95,7 @@ export default function DPAPage() {
 
       <Article id="9" title="Return and deletion">
         <p>
-          On termination of the Services, LEXAI will, at the Customer's election, return all
+          On termination of the Services, LEXAI will, at the Customer&apos;s election, return all
           Customer Personal Data in a structured machine-readable format and delete remaining
           copies within 60 days, save where retention is required by law (in which case
           retention is limited to the duration legally required, segregated, and subject to the
@@ -105,7 +105,7 @@ export default function DPAPage() {
 
       <Article id="10" title="Governing law">
         <p>
-          This DPA is governed by the law of the Customer's primary jurisdiction of operation
+          This DPA is governed by the law of the Customer&apos;s primary jurisdiction of operation
           as identified in the Order Form. Disputes are submitted to the courts of that
           jurisdiction unless the Order Form provides for arbitration (DIFC-LCIA Rules unless
           otherwise agreed).

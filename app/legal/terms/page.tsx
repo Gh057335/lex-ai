@@ -37,7 +37,7 @@ export default function TermsPage() {
           surface the source articles relied upon to make this review feasible.
         </p>
         <p className="mt-3">
-          LEXAI's aggregate liability under the agreement is capped at the fees paid by the
+          LEXAI&apos;s aggregate liability under the agreement is capped at the fees paid by the
           Customer in the twelve months preceding the claim, save for breaches of
           confidentiality, the DPA, or gross negligence / wilful misconduct.
         </p>
